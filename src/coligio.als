@@ -19,7 +19,6 @@ module coligio
 
 one sig Coligio {
 	disciplinas: some Disciplina,
-	atividades: some Atividade,
 	usuarios: some Usuario
 }
 
@@ -32,36 +31,59 @@ sig Disciplina {
 sig Atividade{}
 
 -- Usuário
-abstract sig Usuario {
-	disciplinas: set Disciplina
-}
+abstract sig Usuario {}
 
 sig Professor extends Usuario{}
 sig Aluno extends Usuario{}
 
+-- Facts
 
--- Fatos
-
-
--- Atividade
-fact{
-	all a:Atividade | all c:Coligio | a in c.atividades
-	all a:Atividade | all d:Disciplina | a in d.atividades
+fact todaDisciplinaPertenceAoColigio {
+	all d: Disciplina | one d.coligio
 }
 
--- Disciplina
-fact{
-	all d:Disciplina | all c:Coligio | d.professor in c.usuarios
-	all d:Disciplina | all c:Coligio | d.alunos in c.usuarios
-	all d:Disciplina | all c:Coligio | d.atividades in c.atividades
-
+fact todoUsuarioPertenceAoColigio {
+	all u: Usuario | one u.coligio
 }
 
--- 
-fact{
-	all p:Usuario | all c:Coligio | p in c.usuarios
-	all p:Usuario | all c:Coligio | p.disciplinas in c.disciplinas
+fact todaAtividadeSoTemUmaDisciplina {
+	all a: Atividade | one a.disciplina
+}
+
+-- Functions
+
+fun coligio (d: Disciplina) : set Coligio {
+	d.~disciplinas
+}
+
+fun coligio (u: Usuario) : set Coligio {
+	u.~usuarios
+}
+
+fun disciplina (a: Atividade) : set Disciplina {
+	a.~atividades
+}
+
+fun disciplinas (a: Aluno) : set Disciplina {
+	a.~alunos
+}
+
+fun disciplinas (p: Professor) : set Disciplina {
+	p.~professor
+}
+
+-- Asserts
+
+assert umAlunoPodeTerMaisDeUmaDisciplina {
+	all a: Aluno | some a.disciplinas
+}
+assert umProfessorPodeTerMaisDeUmaDisciplina {
+	all p: Professor | some p.disciplinas
+}
+
+assert doisProfessoresNaoPodemTerAMesmaDisciplina {
+	all p1: Professor | all p2: Professor |no p1.disciplinas - p2.disciplinas
 }
 
 pred show[]{ }
-run show for 2
+run show for 5
